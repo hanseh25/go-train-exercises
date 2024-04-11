@@ -1,6 +1,6 @@
 create table if not exists credentials (
 	id bigserial primary key,
-	url varchar(20) NULL,
+	url varchar(40) NULL,
 	username varchar(20) NULL,
 	"password" varchar(20) NULL,
     created_at timestamp(0) with time zone not null default now()
@@ -10,7 +10,8 @@ create table if not exists users (
     id bigserial primary key,
     name text not null,
     username text not null,
-    password text not null
+    password text not null,
+    created_at timestamp(0) with time zone not null default now()
 );
 
 create table if not exists user_credential (
