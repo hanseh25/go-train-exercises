@@ -2,8 +2,8 @@
 
 via command line :
 
-// clean db 
-migrate -database ${POSTGRESQL_URL_MAIN} -path migrations down
+-- clean db 
+- migrate -database ${POSTGRESQL_URL_MAIN} -path migrations down
 
 // initialize db
 migrate -database ${POSTGRESQL_URL_MAIN} -path migrations up
