@@ -5,7 +5,7 @@ insert into credentials values
 
 
 insert into users values
-  (1,  'stephen speaks', 'hans', 'BJ$hjeAI1o','2024-01-04'::timestamp),
+  (1,  'stephen speaks', 'hans', 'password','2024-01-04'::timestamp),
   (2,  'guillaume devaux', 'guillaume', 'BJ$hjeAI1o','2024-01-04'::timestamp);
 
   insert into user_credential values 

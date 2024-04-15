@@ -37,12 +37,6 @@ const (
 func main() {
 	app := new(app)
 
-	// move this on a db
-	app.auth.username = os.Getenv("AUTH_USERNAME")
-	app.auth.password = os.Getenv("AUTH_PASSWORD")
-
-	validateAuth(app.auth.username, app.auth.password)
-
 	fmt.Printf("hello %v", app.auth.username)
 
 	mux := http.NewServeMux()
@@ -70,16 +64,6 @@ func main() {
 	log.Printf("starting server on %s", srv.Addr)
 	error := srv.ListenAndServeTLS("./localhost.pem", "./localhost-key.pem")
 	log.Fatal(error)
-}
-
-func validateAuth(username string, password string) {
-	if len(username) == 0 {
-		log.Fatal("username must be provided")
-	}
-
-	if len(password) == 0 {
-		log.Fatal("password must be provided")
-	}
 }
 
 func (app *app) publicHandler(w http.ResponseWriter, r *http.Request) {
@@ -200,17 +184,34 @@ func (app *app) basicAuth(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		username, password, ok := r.BasicAuth()
 		if ok {
-			usernameHash := sha256.Sum256([]byte(username))
-			passwordHash := sha256.Sum256([]byte(password))
-			expectedUsernameHash := sha256.Sum256([]byte(app.auth.username))
-			expectedPasswordHash := sha256.Sum256([]byte(app.auth.password))
 
-			usernameMatch := (subtle.ConstantTimeCompare(usernameHash[:], expectedUsernameHash[:]) == 1)
+			ctx := context.Background()
+			conn, err := pgx.Connect(context.Background(), os.Getenv("PSWLCKRDSN"))
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			defer conn.Close(context.Background())
+
+			users, err := dbGetUserByUsername(ctx, conn, username)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			var user = users[len(users)-1]
+
+			passwordHash := sha256.Sum256([]byte(user.Password))
+			expectedPasswordHash := sha256.Sum256([]byte(password))
+
+			usernameMatch := username == user.Username
 			passwordMatch := (subtle.ConstantTimeCompare(passwordHash[:], expectedPasswordHash[:]) == 1)
 
-			if usernameMatch && passwordMatch {
+			if passwordMatch && usernameMatch {
 				next.ServeHTTP(w, r)
 				return
+			} else {
+				app.auth.username = username
+				app.auth.password = password
 			}
 		}
 
