@@ -1,6 +1,6 @@
 # go-train-exercises
 
-via command line :
+-- via command line exer3 :
 
 -- clean db 
 - migrate -database ${POSTGRESQL_URL_MAIN} -path migrations down
