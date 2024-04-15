@@ -87,6 +87,19 @@ func dbGetUserByUsername(ctx context.Context, conn *pgx.Conn, username string) (
 	return users, nil
 }
 
+func saveAllCredentialsForUser(ctx context.Context, conn *pgx.Conn, url string, username string, password string) {
+	sql := "INSERT INTO credentials (url, username, password)  VALUES ($1, $2, $3)"
+
+	// Execute the insert statement
+	res, err := conn.Exec(ctx, sql, url, username, password)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("results %s", res)
+}
+
 func callMe() {
 	log.Printf("hello")
 }

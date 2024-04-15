@@ -47,8 +47,7 @@ func main() {
 	// curl trigger : curl -k -u hans:password https://localhost:4000/generate-password
 
 	mux.HandleFunc("POST /save-credentials", app.basicAuth(app.saveCredentialHandle))
-	// curl trigger :  curl -k -u hans:password -d
-	//'{"url":"www.painhub.com", "username":"hans", "password":"BJ$hjeAI1o"}'  -X POST https://localhost:4000/save-credentials
+	// curl trigger :  curl -k -u hans:password -d '{"url":"www.painhub.com", "username":"hans", "password":"BJ$hjeAI1o"}'  -X POST https://localhost:4000/save-credentials
 
 	mux.HandleFunc("GET /list-credentials", app.basicAuth(app.listCredentialHandle))
 	// curl trigger :  curl -k -u hans:password https://localhost:4000/list-credentials
@@ -94,13 +93,15 @@ func (app *app) saveCredentialHandle(w http.ResponseWriter, r *http.Request) {
 	username := data["username"].(string)
 	password := data["password"].(string)
 
+	ctx := context.Background()
 	conn, err := pgx.Connect(context.Background(), os.Getenv("PSWLCKRDSN"))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	Check(err)
 	defer conn.Close(context.Background())
+
+	saveAllCredentialsForUser(ctx, conn, url, username, password)
 
 	fmt.Fprintf(w, "Successfully saved credentials with the following details: \n URL : %s  \n Credentials %s:%s", url, username, password)
 }
