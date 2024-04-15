@@ -13,6 +13,7 @@ import (
 	"os"
 	"time"
 
+	passlock "github.com/hanseh25/go-password-gen"
 	"github.com/jackc/pgx/v4"
 )
 
@@ -36,8 +37,6 @@ const (
 
 func main() {
 	app := new(app)
-
-	fmt.Printf("hello %v", app.auth.username)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /public", app.publicHandler)
@@ -91,7 +90,7 @@ func (app *app) saveCredentialHandle(w http.ResponseWriter, r *http.Request) {
 
 	url := data["url"].(string)
 	username := data["username"].(string)
-	password := data["password"].(string)
+	password := passlock.GeneratePassword()
 
 	ctx := context.Background()
 	conn, err := pgx.Connect(context.Background(), os.Getenv("PSWLCKRDSN"))

@@ -31,7 +31,7 @@ func dbAllCredentialsForUser(ctx context.Context, conn *pgx.Conn, userId int64) 
 		inner join user_credential on credentials.id = user_credential.credential_id
 		where credentials.id = $1`, userId)
 
-	log.Printf("row username %s", rows)
+	// log.Printf("row username %s", rows)
 
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func dbAllCredentialsForUser(ctx context.Context, conn *pgx.Conn, userId int64) 
 	for rows.Next() {
 		var c credential
 		err = rows.Scan(&c.Id, &c.Url, &c.Username, &c.Password, &c.CreatedAt)
-		log.Printf("row username %s", c.Username)
+
 		if err != nil {
 			return nil, err
 		}
@@ -62,7 +62,7 @@ func dbGetUserByUsername(ctx context.Context, conn *pgx.Conn, username string) (
 	from users
 	where users.username = $1`, username)
 
-	log.Printf("row username %s", rows)
+	//log.Printf("row username %s", rows)
 
 	if err != nil {
 		return nil, err
@@ -74,7 +74,7 @@ func dbGetUserByUsername(ctx context.Context, conn *pgx.Conn, username string) (
 	for rows.Next() {
 		var u user
 		err = rows.Scan(&u.Id, &u.Name, &u.Username, &u.Password, &u.CreatedAt)
-		log.Printf("row username %s", u.Username)
+
 		if err != nil {
 			return nil, err
 		}
@@ -95,9 +95,8 @@ func saveAllCredentialsForUser(ctx context.Context, conn *pgx.Conn, url string, 
 
 	if err != nil {
 		log.Fatal(err)
+		log.Printf("results %s", res)
 	}
-
-	log.Printf("results %s", res)
 }
 
 func callMe() {
