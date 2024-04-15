@@ -32,17 +32,9 @@ const (
 )
 
 //export POSTGRESQL_URL='postgres://testuser:testpassword@localhost:5432/passlocker?sslmode=disable'
+//PSWLCKRDSN=postgres://testuser:testpassword@localhost/passlocker AUTH_USERNAME=hans AUTH_PASSWORD=password go run .
 
 func main() {
-	//PSWLCKRDSN=postgres://testuser:testpassword@localhost/passlocker AUTH_USERNAME=hans AUTH_PASSWORD=password go run .
-	conn, err := pgx.Connect(context.Background(), os.Getenv("PSWLCKRDSN"))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	Check(err)
-	defer conn.Close(context.Background())
-
 	app := new(app)
 
 	// move this on a db
@@ -63,6 +55,9 @@ func main() {
 	mux.HandleFunc("POST /save-credentials", app.basicAuth(app.saveCredentialHandle))
 	// curl trigger :  curl -k -u hans:password -d
 	//'{"url":"www.painhub.com", "username":"hans", "password":"BJ$hjeAI1o"}'  -X POST https://localhost:4000/save-credentials
+
+	mux.HandleFunc("GET /list-credentials", app.basicAuth(app.listCredentialHandle))
+	// curl trigger :  curl -k -u hans:password https://localhost:4000/list-credentials
 
 	srv := &http.Server{
 		Addr:         "localhost:4000",
@@ -115,7 +110,47 @@ func (app *app) saveCredentialHandle(w http.ResponseWriter, r *http.Request) {
 	username := data["username"].(string)
 	password := data["password"].(string)
 
+	conn, err := pgx.Connect(context.Background(), os.Getenv("PSWLCKRDSN"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	Check(err)
+	defer conn.Close(context.Background())
+
 	fmt.Fprintf(w, "Successfully saved credentials with the following details: \n URL : %s  \n Credentials %s:%s", url, username, password)
+}
+
+func (app *app) listCredentialHandle(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "list all credentials")
+
+	username, password, ok := r.BasicAuth()
+
+	if !ok && len(password) == 0 {
+		log.Printf("error")
+	}
+
+	ctx := context.Background()
+	conn, err := pgx.Connect(context.Background(), os.Getenv("PSWLCKRDSN"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer conn.Close(context.Background())
+
+	users, err := dbGetUserByUsername(ctx, conn, username)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Fprintln(w, "before credentials db call")
+	credentials, err := dbAllCredentialsForUser(ctx, conn, users[0].Id)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Fprintln(w, "list all credentials \n", credentials)
 }
 
 func generatePassword(passwordLength int, includeNumbersFlag bool, includeSymbolsFlag bool, includeUppercaseFlag bool, passwordType int) string {
