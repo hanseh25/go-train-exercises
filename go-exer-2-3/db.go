@@ -31,8 +31,6 @@ func dbAllCredentialsForUser(ctx context.Context, conn *pgx.Conn, userId int64) 
 		inner join user_credential on credentials.id = user_credential.credential_id
 		where credentials.id = $1`, userId)
 
-	// log.Printf("row username %s", rows)
-
 	if err != nil {
 		return nil, err
 	}
@@ -88,15 +86,18 @@ func dbGetUserByUsername(ctx context.Context, conn *pgx.Conn, username string) (
 }
 
 func saveAllCredentialsForUser(ctx context.Context, conn *pgx.Conn, url string, username string, password string) {
-	sql := "INSERT INTO credentials (url, username, password)  VALUES ($1, $2, $3)"
+	sql := "INSERT INTO credentials (url, username, password)  VALUES ($1, $2, $3)  RETURNING id"
 
 	// Execute the insert statement
-	res, err := conn.Exec(ctx, sql, url, username, password)
+	var lastID int64
+	err := conn.QueryRow(ctx, sql, url, username, password).Scan(&lastID)
 
 	if err != nil {
 		log.Fatal(err)
-		log.Printf("results %s", res)
 	}
+
+	log.Printf("Last inserted ID:", lastID)
+
 }
 
 func callMe() {
