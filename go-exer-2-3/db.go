@@ -85,22 +85,26 @@ func dbGetUserByUsername(ctx context.Context, conn *pgx.Conn, username string) (
 	return users, nil
 }
 
-func saveAllCredentialsForUser(ctx context.Context, conn *pgx.Conn, url string, username string, password string, userID int) {
+func saveAllCredentialsForUser(ctx context.Context, conn *pgx.Conn, url string, username string, password string, userID int64) {
 	sql := "INSERT INTO credentials (url, username, password)  VALUES ($1, $2, $3)  RETURNING id"
 
 	// Execute the insert statement
 	var lastID int64
 	err := conn.QueryRow(ctx, sql, url, username, password).Scan(&lastID)
 
+	log.Printf("Last inserted ID : %v", lastID)
+
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	log.Printf("Last inserted ID:", lastID)
+	log.Printf("userID %v", userID)
 
-	sql2 := "INSERT INTO user_credential (user_id, credential_id)  VALUES ($1, $2)"
+	sql2 := "INSERT INTO user_credential VALUES ($2, $1)"
 
 	res, err := conn.Exec(ctx, sql2, lastID, userID)
+
+	log.Printf("results %s", res)
 
 	if err != nil {
 		log.Fatal(err)

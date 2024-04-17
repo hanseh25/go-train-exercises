@@ -15,7 +15,7 @@ create table if not exists users (
 );
 
 create table if not exists user_credential (
-    user_id bigint not null references users (id) on delete cascade,
-    credential_id bigint not null references credentials (id) on delete cascade,
+    user_id bigserial not null references users (id) on delete cascade,
+    credential_id bigserial not null references credentials (id) on delete cascade,
     constraint user_credential_key primary key (user_id, credential_id)
 );

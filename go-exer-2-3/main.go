@@ -105,7 +105,7 @@ func (app *app) saveCredentialHandle(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	saveAllCredentialsForUser(ctx, conn, url, username, password, users[0].id)
+	saveAllCredentialsForUser(ctx, conn, url, username, password, users[0].Id)
 
 	fmt.Fprintf(w, "Successfully saved credentials with the following details: \n URL : %s  \n Credentials %s:%s", url, username, password)
 }
